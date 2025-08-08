@@ -16,7 +16,7 @@ async function encontrarAgenteById(id){
     try {
         const agente = await db("agentes").where({id: id})
 
-        if (!agente){
+        if (!agente || agente.length === 0){
             return false;
         }
 
@@ -32,7 +32,7 @@ async function adicionarAgente(dados) {
     try {
         const agente = await db("agentes").insert(dados, ["*"]);
 
-        return agente;
+        return agente[0];
     } catch (error) {
         console.log(error);
 
@@ -44,7 +44,7 @@ async function atualizarAgente(id, agenteAtualizado) {
     try {
         const agente = await db("agentes").where({id: id}).update(agenteAtualizado, ["*"]);
 
-        if (!agente) {
+        if (!agente || agente.length === 0) {
             return false;
         }
 
@@ -61,7 +61,7 @@ async function apagarAgente(id) {
     try {
         const agente = await db("agentes").where({id:id}).del();
 
-        if (!agente){
+        if (!agente || agente.length === 0){
             return false;
         }
 
@@ -77,7 +77,7 @@ async function listarAgentesPorCargo(cargo) {
     try {
         const agentes = await db("agentes").select("*").where({cargo:cargo});
 
-        if (!agentes){
+        if (!agentes || agentes.length === 0){
             return false;
         }
 
@@ -94,7 +94,7 @@ async function listarDataDeIncorporacao(sort) {
         if (sort === "dataDeIncorporacao") {
             const agentes = await db("agentes").orderBy("dataDeIncorporacao", "asc");
 
-            if (!agentes) {
+            if (!agentes || agentes.length === 0) {
                 return false;
             }
 
@@ -103,7 +103,7 @@ async function listarDataDeIncorporacao(sort) {
 
         const agentes = await db("agentes").orderBy("dataDeIncorporacao", "desc");
 
-        if (!agentes) {
+        if (!agentes || agentes.length === 0) {
             return false;
         }
 
@@ -119,11 +119,11 @@ async function listarCasosDeAgentes(id) {
     try {        
         const casos = await db("casos").select("*").where({agente_id:id});
 
-        if (!casos) {
+        if (!casos || casos.length === 0) {
             return false;
         }
 
-        return casos
+        return casos;
 
     } catch (error) {
         console.log(error);

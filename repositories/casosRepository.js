@@ -18,7 +18,7 @@ async function findById(id) {
     try {
         const caso = await db("casos").where({id: id})
 
-        if (!caso){
+        if (!caso || caso.length === 0){
             return false;
         }
 
@@ -34,7 +34,7 @@ async function adicionarCaso(dados) {
     try {
         const caso = await db("casos").insert(dados, ["*"]);
 
-        return caso;
+        return caso[0];
     } catch (error) {
         console.log(error);
 
@@ -46,7 +46,7 @@ async function atualizarCaso(id, casoAtualizado) {
     try {
         const caso = await db("casos").where({id: id}).update(casoAtualizado, ["*"]);
 
-        if (!caso) {
+        if (!caso || caso.length === 0) {
             return false;
         }
 
@@ -63,7 +63,7 @@ async function apagarCaso(id) {
     try {
         const caso = await db("casos").where({id:id}).del();
 
-        if (!caso){
+        if (!caso || caso.length === 0){
             return false;
         }
 
@@ -79,7 +79,7 @@ async function listarCasosPorAgente(agente_id) {
     try {
         const casos = await db("casos").where({agente_id:agente_id})
 
-        if (!casos){
+        if (!casos || casos.length === 0){
             return false;
         }
 
@@ -95,7 +95,7 @@ async function listarCasosPorStatus(status) {
     try {
         const casos = await db("casos").where({status:status})
 
-        if (!casos){
+        if (!casos || casos.length === 0){
             return false;
         }
 
@@ -112,7 +112,7 @@ async function listarCasosPorAgenteEStatus(agente_id, status) {
     try {
         const casos = await db("casos").where({agente_id:agente_id, status:status});
 
-        if (!casos){
+        if (!casos || casos.length === 0){
             return false;
         }
 
@@ -128,13 +128,13 @@ async function encontrarAgenteDoCaso(caso_id) {
     try {
         const caso = await db("casos").where({id:caso_id})
 
-        if (!caso){
+        if (!caso || caso.length === 0){
             return false;
         }
 
         const agente = await db("agentes").where({id:caso[0].agente_id})
 
-        if (!agente){
+        if (!agente || caso.length === 0){
             return false;
         }
 
@@ -154,7 +154,7 @@ async function encontrarCasoPorString(search) {
                                                             .whereILike("titulo", `%${search}%`)
                                                             .orWhereILike("descricao", `%${search}%`)
 
-        if (!casos){
+        if (!casos || casos.length === 0){
             return false;
         }
 

@@ -31,7 +31,7 @@ async function getAllAgentes(req, res) {
 
         const dados = await agentesRepository.listarAgentesPorCargo(cargo);
         
-        if(!dados || dados.length === 0){
+        if(!dados){
             return res.status(404).json(errorHandler.handleError(404, "Error ao encontrar agentes", "agenteNaoEncontrado", "Nenhum agente foi encontrado com esse id"));
         }
 
@@ -45,7 +45,7 @@ async function getAllAgentes(req, res) {
 
         const dados = await agentesRepository.listarDataDeIncorporacao(sort)
 
-        if(!dados || dados.length === 0){
+        if(!dados){
             return res.status(404).json(errorHandler.handleError(404, "Error ao encontrar agentes", "agenteNaoEncontrado", "Nenhum agente foi encontrado com esse id"));
         }
 
@@ -54,7 +54,7 @@ async function getAllAgentes(req, res) {
 
     const dados = await agentesRepository.encontrarAgentes();
 
-    if(!dados || dados.length === 0){
+    if(!dados){
         return res.status(404).json(errorHandler.handleError(404, "Error ao encontrar agentes", "agenteNaoEncontrado", "Nenhum agente foi encontrado com esse id"));
     }
 
@@ -166,7 +166,7 @@ async function getCasosDoAgente(req, res) {
 
     const casos = await agentesRepository.listarCasosDeAgentes(id);
 
-    if (!casos || casos.length === 0) {
+    if (!casos) {
         return res.status(404).json(errorHandler.handleError(404, "Casos não encontrados", "casosNaoEncontrados", "Casos não foram encontrados para esse agente."));
     }
 

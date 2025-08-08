@@ -3,13 +3,13 @@ const agentesRepository = require("../repositories/agentesRepository");
 const errorHandler = require("../utils/errorHandler");
 
 async function listarPorAgente(res, agente_id) {
-    if (!agentesRepository.encontrarAgenteById(agente_id)) {
+    if (!await agentesRepository.encontrarAgenteById(agente_id)) {
         return res.status(404).json(errorHandler.handleError(404, "ID do agente informado não encontrado no sistema.", "agenteNaoEncontrado", "ID do agente informado não encontrado no sistema."));
     }
 
     const dados = await casosRepository.listarCasosPorAgente(agente_id);
 
-    if (!dados || dados.length === 0) {
+    if (!dados) {
         return res.status(404).json(errorHandler.handleError(404, "Caso não encontrado com esse id de agente", "casoNaoEncontrado", "Caso não encontrado com esse id de agente"));
     }
 
@@ -23,7 +23,7 @@ async function listarPorStatus(res, status) {
 
     const dados = await casosRepository.listarCasosPorStatus(status);
 
-    if (!dados || dados.length === 0) {
+    if (!dados) {
         return res.status(404).json(errorHandler.handleError(404, "Caso não encontrado", "casoNaoEncontrado", "Caso não encontrado com esse status"));
     }
 
@@ -31,13 +31,13 @@ async function listarPorStatus(res, status) {
 }
 
 async function listarPorAgenteEStatus(res, agente_id, status) {
-    if (!agentesRepository.encontrarAgenteById(agente_id)) {
+    if (!await agentesRepository.encontrarAgenteById(agente_id)) {
         return res.status(404).json(errorHandler.handleError(404, "ID do agente informado não encontrado no sistema.", "agenteNaoEncontrado", "ID do agente informado não encontrado no sistema."));
     }
 
     const dados = await casosRepository.listarCasosPorAgenteEStatus(agente_id, status);
 
-    if (!dados || dados.length === 0) {
+    if (!dados) {
         return res.status(404).json(errorHandler.handleError(404, "Caso não encontrado", "casoNaoEncontrado", "Caso não encontrado com esse agente e status"));
     }
 
@@ -61,7 +61,7 @@ async function getAllCasos(req, res) {
 
     const dados = await casosRepository.findAll();
 
-    if (!dados || dados.length === 0) {
+    if (!dados) {
         return res.status(404).json(errorHandler.handleError(404, "Casos não encontrados", "casoNaoEncontrado", "Nenhum caso registrado em nosso sistema."));
     }
 
@@ -90,7 +90,7 @@ async function postCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Tipo de status inválido", "tipoStatusInvalido", "Tipo de status inválido. Selecionar 'aberto' ou 'solucionado'."));
     }
 
-    if (!agentesRepository.encontrarAgenteById(agente_id)) {
+    if (!await agentesRepository.encontrarAgenteById(agente_id)) {
         return res.status(404).json(errorHandler.handleError(404, "Agente informado não encontrado", "agenteNaoEncontrado", "Agente informado não encontrado."));
     }
 
@@ -120,7 +120,7 @@ async function putCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Tipo de status inválido", "tipoStatusInvalido", "Tipo de status inválido. Selecionar 'aberto' ou 'solucionado'."));
     }
 
-    if (!agentesRepository.encontrarAgenteById(agente_id)) {
+    if (!await agentesRepository.encontrarAgenteById(agente_id)) {
         return res.status(404).json(errorHandler.handleError(404, "Agente não encontrado", "agenteNaoEncontrado", "Agente não encontrado. Verifique se o agente está registrado no sistema."));
     }
 
@@ -150,7 +150,7 @@ async function patchCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Tipo de status inválido", "tipoStatusInvalido", "Tipo de status inválido. Selecionar 'aberto' ou 'solucionado'."));
     }
 
-    if (agente_id && !agentesRepository.encontrarAgenteById(agente_id)) {
+    if (agente_id && !await agentesRepository.encontrarAgenteById(agente_id)) {
         return res.status(404).json(errorHandler.handleError(404, "Agente não encontrado", "agenteNaoEncontrado", "Agente não encontrado. Verifique se o agente está registrado no sistema."));
     }
 
@@ -200,7 +200,7 @@ async function getCasosPorString(req, res) {
 
     const dados = await casosRepository.encontrarCasoPorString(q);
 
-    if (!dados || dados.length === 0) {
+    if (!dados) {
         return res.status(404).json(errorHandler.handleError(404, "Caso não encontrado", "casoNaoEncontrado", "Nenhum caso encontrado com a palavra fornecida."));
     }
 
