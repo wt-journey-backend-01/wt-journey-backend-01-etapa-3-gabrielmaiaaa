@@ -63,7 +63,7 @@ async function apagarCaso(id) {
     try {
         const caso = await db("casos").where({id:id}).del();
 
-        if (!caso || caso.length === 0){
+        if (!caso || caso === 0){
             return false;
         }
 

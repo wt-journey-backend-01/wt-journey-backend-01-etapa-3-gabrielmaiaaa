@@ -61,7 +61,7 @@ async function apagarAgente(id) {
     try {
         const agente = await db("agentes").where({id:id}).del();
 
-        if (!agente || agente.length === 0){
+        if (!agente || agente === 0){
             return false;
         }
 

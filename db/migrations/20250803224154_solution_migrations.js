@@ -14,7 +14,7 @@ exports.up = function(knex) {
       table.increments('id').primary();
       table.string('titulo').notNullable();
       table.string('descricao').notNullable();
-      table.string('status').notNullable().checkIn(['aberto', 'solucionado']);
+      table.enu('status', ['aberto', 'solucionado']).notNullable();
       table.integer('agente_id').notNullable();
       table.foreign('agente_id').references('id').inTable('agentes').onDelete('CASCADE');
     });
