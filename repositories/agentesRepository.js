@@ -42,7 +42,7 @@ async function adicionarAgente(dados) {
 
 async function atualizarAgente(id, agenteAtualizado) {
     try {
-        const agente = await db("agentes").where({id: id}).update(agenteAtualizado, ["*"]);
+        const agente = await db("agentes").where({id: id}).update(agenteAtualizado).returning("*");
 
         if (!agente || agente.length === 0) {
             return false;
@@ -92,25 +92,14 @@ async function listarAgentesPorCargo(cargo) {
 async function listarDataDeIncorporacao(sort) {
     try {
         if (sort === "dataDeIncorporacao") {
-            const agentes = await db("agentes").orderBy("dataDeIncorporacao", "asc");
-
-            if (!agentes || agentes.length === 0) {
-                return false;
-            }
-
-            return agentes;
+            return await db("agentes").orderBy("dataDeIncorporacao", "asc");
+        } else if (sort === "-dataDeIncorporacao") {
+            return await db("agentes").orderBy("dataDeIncorporacao", "desc");
         }
 
-        const agentes = await db("agentes").orderBy("dataDeIncorporacao", "desc");
-
-        if (!agentes || agentes.length === 0) {
-            return false;
-        }
-
-        return agentes;
+        return false;
     } catch (error) {
         console.log(error);
-
         return false;
     }
 }

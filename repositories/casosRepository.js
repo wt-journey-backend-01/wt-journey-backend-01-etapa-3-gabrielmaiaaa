@@ -44,7 +44,7 @@ async function adicionarCaso(dados) {
 
 async function atualizarCaso(id, casoAtualizado) {
     try {
-        const caso = await db("casos").where({id: id}).update(casoAtualizado, ["*"]);
+        const caso = await db("casos").where({id: id}).update(casoAtualizado).returning('*');
 
         if (!caso || caso.length === 0) {
             return false;
@@ -134,7 +134,7 @@ async function encontrarAgenteDoCaso(caso_id) {
 
         const agente = await db("agentes").where({id:caso[0].agente_id})
 
-        if (!agente || caso.length === 0){
+        if (!agente || agente.length === 0){
             return false;
         }
 

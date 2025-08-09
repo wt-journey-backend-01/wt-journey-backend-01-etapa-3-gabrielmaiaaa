@@ -18,6 +18,13 @@ function isValidDate(dateString) {
         return false;
     }
 
+    const limiteTempo = new Date();
+    limiteTempo.setFullYear(limiteTempo.getFullYear() - 120);
+
+    if (data < limiteTempo) {
+        return false;
+    }
+
     return true;
 }
 
@@ -80,14 +87,14 @@ async function postAgente(req, res) {
     }
 
     if (!isValidDate(dataDeIncorporacao)) {
-        return res.status(400).json(errorHandler.handleError(400, "Data Inválida", "dataInvalida", "Data de Incorporação inválida ou no futuro."));
+        return res.status(400).json(errorHandler.handleError(400, "Data Inválida", "dataInvalida", "Data de Incorporação inválida ou no futuro ou com mais de 120 anos."));
     }
 
     const novoAgente = { nome, dataDeIncorporacao, cargo };
     const dados = await agentesRepository.adicionarAgente(novoAgente);
 
     if(!dados){
-        return res.status(404).json(errorHandler.handleError(404, "Error ao encontrar agentes", "agenteNaoEncontrado", "Nenhum agente foi encontrado com esse id"));
+        return res.status(404).json(errorHandler.handleError(404, "Error ao criar agente", "agenteNaoCriado", "Não foi possivel criar esse agente"));
     }
     
     res.status(201).json(dados);
