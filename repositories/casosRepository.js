@@ -32,7 +32,7 @@ async function findById(id) {
 
 async function adicionarCaso(dados) {
     try {
-        const caso = await db("casos").insert(dados, ["*"]);
+        const caso = await db("casos").insert(dados).returning("*");
 
         return caso[0];
     } catch (error) {

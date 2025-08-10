@@ -1,10 +1,15 @@
 const db = require("../db/db")
 
+function formatarData(agente) {
+    agente.dataDeIncorporacao = agente.dataDeIncorporacao.toISOString().split('T')[0];
+    return agente;
+}
+
 async function encontrarAgentes(){
     try {
         const agentes = await db("agentes").select("*");
 
-        return agentes;
+        return agentes.map(agente => formatarData(agente));
     } catch (error) {
         console.log(error);
 
@@ -20,7 +25,7 @@ async function encontrarAgenteById(id){
             return false;
         }
 
-        return agente[0];
+        return formatarData(agente[0]);
     } catch (error) {
         console.log(error);
 
@@ -28,11 +33,11 @@ async function encontrarAgenteById(id){
     }
 }
 
-async function adicionarAgente(dados) {
+async function adicionarAgente(novoAgente) {
     try {
-        const agente = await db("agentes").insert(dados, ["*"]);
+        const agente = await db("agentes").insert(novoAgente).returning("*");
 
-        return agente[0];
+        return formatarData(agente[0]);
     } catch (error) {
         console.log(error);
 
@@ -48,7 +53,7 @@ async function atualizarAgente(id, agenteAtualizado) {
             return false;
         }
 
-        return agente[0];
+        return formatarData(agente[0]);
         
     } catch (error) {
         console.log(error);
@@ -81,7 +86,7 @@ async function listarAgentesPorCargo(cargo) {
             return false;
         }
 
-        return agentes;        
+        return agentes.map(agente => formatarData(agente));        
     } catch (error) {
         console.log(error);
         
@@ -92,9 +97,11 @@ async function listarAgentesPorCargo(cargo) {
 async function listarDataDeIncorporacao(sort) {
     try {
         if (sort === "dataDeIncorporacao") {
-            return await db("agentes").orderBy("dataDeIncorporacao", "asc");
+            const agentes = await db("agentes").orderBy("dataDeIncorporacao", "asc");
+            return agentes.map(agente => formatarData(agente));
         } else if (sort === "-dataDeIncorporacao") {
-            return await db("agentes").orderBy("dataDeIncorporacao", "desc");
+            const agentes = await db("agentes").orderBy("dataDeIncorporacao", "desc");
+            return agentes.map(agente => formatarData(agente));
         }
 
         return false;
