@@ -1,5 +1,6 @@
 const agentesRepository = require("../repositories/agentesRepository")
 const errorHandler = require("../utils/errorHandler");
+const casosRepository = require("../repositories/casosRepository");
 
 function isValidDate(dateString) {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -171,6 +172,11 @@ async function patchAgente(req, res) {
 
 async function deleteAgente(req, res) {
     const { id } = req.params;
+
+    if(await casosRepository.listarCasosPorAgente(id)) {
+        return res.status(400).json(errorHandler.handleError(400, "Agente com Casos", "agenteComCasos", "Agente não pode ser excluído enquanto tiver casos associados."));
+    }
+
     const status = await agentesRepository.apagarAgente(id);
 
     if (!status) {

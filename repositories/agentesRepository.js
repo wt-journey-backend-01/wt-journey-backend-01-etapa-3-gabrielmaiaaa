@@ -136,5 +136,6 @@ module.exports = {
     apagarAgente,
     listarAgentesPorCargo,
     listarDataDeIncorporacao,
-    listarCasosDeAgentes
+    listarCasosDeAgentes,
+    formatarData
 }

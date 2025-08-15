@@ -138,7 +138,7 @@ async function encontrarAgenteDoCaso(caso_id) {
             return false;
         }
 
-        return agente[0]
+        return agentesRepository.formatarData(agente[0]);
         
     } catch (error) {
         console.log(error);
@@ -151,8 +151,8 @@ async function encontrarCasoPorString(search) {
     try {
         // where('campo', 'operador', 'valor a ser comparado')
         const casos = await db("casos")
-                                                            .whereLike("titulo", `%${search}%`)
-                                                            .orWhereLike("descricao", `%${search}%`).debug()
+                                                            .whereILike("titulo", `%${search}%`)
+                                                            .orWhereILike("descricao", `%${search}%`)
 
         return casos;
     } catch (error) {

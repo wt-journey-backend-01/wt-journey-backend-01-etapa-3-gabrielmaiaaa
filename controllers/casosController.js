@@ -112,7 +112,7 @@ async function putCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Alteração de ID não permitida", "idAlterado", "O campo 'id' não pode ser alterado."));
     }
 
-    if(titulo.trim() === "" || descricao.trim() === "" || status.trim() === "" || String(agente_id).trim() === "") {
+    if(!titulo ||titulo.trim() === "" || !descricao || descricao.trim() === "" || !status || status.trim() === "" || agente_id === undefined || String(agente_id).trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
     }
 
@@ -146,12 +146,18 @@ async function patchCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Um Campo Obrigatório", "camposObrigatorios", "Pelo menos um campo deve ser fornecido."));
     }
 
-    if (!agente_id || String(agente_id).trim() === "") {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido no formato de número."));
-    }
+    if (agente_id !== undefined) {
+        if (String(agente_id).trim() === "") {
+            return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido no formato de número."));
+        }
 
-    if (Number.isNaN(Number(agente_id))) {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+        if (Number.isNaN(Number(agente_id))) {
+            return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+        }
+
+        if (!await agentesRepository.encontrarAgenteById(agente_id)) {
+            return res.status(404).json(errorHandler.handleError(404, "Agente não encontrado", "agenteNaoEncontrado", "Agente não encontrado. Verifique se o agente está registrado no sistema."));
+        }
     }
 
     if((titulo && titulo.trim() === "") || titulo === "" || (descricao && descricao.trim() === "") || descricao === "" || (status && status.trim() === "") || status === "") {
@@ -160,10 +166,6 @@ async function patchCaso(req, res) {
 
     if (status && status !== "aberto" && status !== "solucionado") {
         return res.status(400).json(errorHandler.handleError(400, "Tipo de status inválido", "tipoStatusInvalido", "Tipo de status inválido. Selecionar 'aberto' ou 'solucionado'."));
-    }
-
-    if (agente_id && !await agentesRepository.encontrarAgenteById(agente_id)) {
-        return res.status(404).json(errorHandler.handleError(404, "Agente não encontrado", "agenteNaoEncontrado", "Agente não encontrado. Verifique se o agente está registrado no sistema."));
     }
 
     const casoAtualizado = { titulo, descricao, status, agente_id };
@@ -214,7 +216,7 @@ async function getAgenteDoCaso(req, res) {
 async function getCasosPorString(req, res) {
     const { q } = req.query;
 
-    if(!q) {
+    if(!q || q.trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Parâmetro não encontrado", "parametroNaoEncontrado", "Verifique se está utilizando o parametro 'q' e se colocou alguma palavra para buscar."));
     }
 
