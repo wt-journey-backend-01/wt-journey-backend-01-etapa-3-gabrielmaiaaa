@@ -31,7 +31,7 @@ function isValidDate(dateString) {
 async function getAllAgentes(req, res) {
     const { cargo, sort } = req.query;
 
-    if (cargo) {
+    if (cargo || cargo === '') {
         if (cargo !== "inspetor" && cargo !== "delegado") {
             return res.status(400).json(errorHandler.handleError(400, "Cargo Inválido", "cargoInvalido", "Tipo de cargo inválido. Selecionar 'inspetor' ou 'delegado'."));
         }
@@ -45,15 +45,15 @@ async function getAllAgentes(req, res) {
         return res.status(200).json(dados);
     }
 
-    if (sort) {
+    if (sort || sort === '') {
         if (sort !== "dataDeIncorporacao" && sort !== "-dataDeIncorporacao") {
             return res.status(400).json(errorHandler.handleError(400, "Tipo de Sort Inválido", "tipoSortInvalido", "Tipo de sort inválido. Selecionar 'dataDeIncorporacao' ou '-dataDeIncorporacao'."));
         }
 
         const dados = await agentesRepository.listarDataDeIncorporacao(sort)
 
-        if(!dados){
-            return res.status(404).json(errorHandler.handleError(404, "Error ao encontrar agentes", "agenteNaoEncontrado", "Nenhum agente foi encontrado com esse id"));
+        if (!dados || dados.length === 0) {
+            return res.status(404).json(errorHandler.handleError(404, "Nenhum agente encontrado", "agenteNaoEncontrado", "Nenhum agente foi encontrado com esse filtro."));
         }
 
         return res.status(200).json(dados)

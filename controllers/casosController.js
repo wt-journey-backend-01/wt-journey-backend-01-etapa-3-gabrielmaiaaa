@@ -16,8 +16,8 @@ async function listarPorAgente(res, agente_id) {
     return res.status(200).json(dados);
 }
 
-async function listarPorStatus(res, status) {
-    if (status !== "aberto" && status !== "solucionado") {
+async function listarPorStatus(res, status) {    
+    if (status !== "aberto" && status !== "solucionado" ) {
         return res.status(400).json(errorHandler.handleError(400, "Tipo de status inválido", "tipoStatusInvalido", "Tipo de status inválido. Selecionar 'aberto' ou 'solucionado'."));
     }
 
@@ -51,11 +51,11 @@ async function getAllCasos(req, res) {
         return listarPorAgenteEStatus(res, agente_id, status);
     }
 
-    else if (agente_id) {
+    else if (agente_id || agente_id === '') {
         return listarPorAgente(res, agente_id);
     }
 
-    else if (status) {
+    else if (status || status === '') {
         return listarPorStatus(res, status);
     }
 
@@ -200,7 +200,7 @@ async function getCasosPorString(req, res) {
 
     const dados = await casosRepository.encontrarCasoPorString(q);
 
-    if (!dados) {
+    if (!dados || dados.length === 0) {
         return res.status(404).json(errorHandler.handleError(404, "Caso não encontrado", "casoNaoEncontrado", "Nenhum caso encontrado com a palavra fornecida."));
     }
 

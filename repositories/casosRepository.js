@@ -154,10 +154,6 @@ async function encontrarCasoPorString(search) {
                                                             .whereILike("titulo", `%${search}%`)
                                                             .orWhereILike("descricao", `%${search}%`)
 
-        if (!casos || casos.length === 0){
-            return false;
-        }
-
         return casos;
     } catch (error) {
         console.log(error);
