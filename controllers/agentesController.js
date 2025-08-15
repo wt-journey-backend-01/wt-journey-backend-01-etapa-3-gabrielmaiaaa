@@ -2,8 +2,13 @@ const agentesRepository = require("../repositories/agentesRepository")
 const errorHandler = require("../utils/errorHandler");
 
 function isValidDate(dateString) {
-    const data = new Date(dateString);
     const regex = /^\d{4}-\d{2}-\d{2}$/;
+    const [ano, mes, dia] = dateString.split('-').map(Number);
+    const data = new Date(ano, mes-1, dia);
+
+    if (data.getFullYear() !== ano || data.getMonth() + 1 !== mes || data.getDate() !== dia) {
+        return false;
+    }
 
     if (!regex.test(dateString)) {
         return false;
@@ -30,8 +35,16 @@ function isValidDate(dateString) {
 
 async function getAllAgentes(req, res) {
     const { cargo, sort } = req.query;
+    
+    if(sort !== undefined && sort.trim() === ""){
+        return res.status(400).json(errorHandler.handleError(400, "Campo Sort vazio", "campoVazio", "Campo vazio. Selecionar 'dataDeIncorporacao' ou '-dataDeIncorporacao'."));
+    }
+    
+    if(cargo !== undefined && cargo.trim() === ""){
+        return res.status(400).json(errorHandler.handleError(400, "Campo Cargo vazio", "campoVazio", "Campo vazio. Selecionar 'inspetor' ou 'delegado'."));
+    }
 
-    if (cargo || cargo === '') {
+    if (cargo) {
         if (cargo !== "inspetor" && cargo !== "delegado") {
             return res.status(400).json(errorHandler.handleError(400, "Cargo Inválido", "cargoInvalido", "Tipo de cargo inválido. Selecionar 'inspetor' ou 'delegado'."));
         }
@@ -45,7 +58,7 @@ async function getAllAgentes(req, res) {
         return res.status(200).json(dados);
     }
 
-    if (sort || sort === '') {
+    if (sort) {
         if (sort !== "dataDeIncorporacao" && sort !== "-dataDeIncorporacao") {
             return res.status(400).json(errorHandler.handleError(400, "Tipo de Sort Inválido", "tipoSortInvalido", "Tipo de sort inválido. Selecionar 'dataDeIncorporacao' ou '-dataDeIncorporacao'."));
         }
@@ -82,7 +95,7 @@ async function getAgente(req, res) {
 async function postAgente(req, res) {
     const { nome, dataDeIncorporacao, cargo } = req.body;
 
-    if(!nome || !dataDeIncorporacao || !cargo) {
+    if(!nome || nome.trim() === "" || !dataDeIncorporacao || dataDeIncorporacao.trim() === "" || !cargo || cargo.trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Campos Obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
     }
 
@@ -104,16 +117,16 @@ async function putAgente(req, res) {
     const { id } = req.params;
     const { id: idBody, nome, dataDeIncorporacao, cargo } = req.body;
 
-    if(idBody && idBody !== id) {
+    if((idBody && idBody !== id) || idBody === "") {
         return res.status(400).json(errorHandler.handleError(400, "Alteração de ID não permitida", "idAlterado", "O campo 'id' não pode ser alterado."));
     }
 
-    if(!nome || !dataDeIncorporacao || !cargo) {
+    if(!nome || nome.trim() === "" || !dataDeIncorporacao || dataDeIncorporacao.trim() === "" || !cargo || cargo.trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Campos Obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
     }
 
     if (!isValidDate(dataDeIncorporacao)) {
-        return res.status(400).json(errorHandler.handleError(400, "Data Inválida", "dataInvalida", "Data de Incorporação inválida ou no futuro."));
+        return res.status(400).json(errorHandler.handleError(400, "Data Inválida", "dataInvalida", "Data de Incorporação inválida ou no futuro ou com mais de 120 anos."));
     }
 
     const agenteAtualizado = { nome, dataDeIncorporacao, cargo };
@@ -130,7 +143,7 @@ async function patchAgente(req, res) {
     const { id } = req.params;
     const { id: idBody, nome, dataDeIncorporacao, cargo } = req.body;
 
-    if(idBody && idBody !== id) {
+    if((idBody && idBody !== id) || idBody === "") {
         return res.status(400).json(errorHandler.handleError(400, "Alteração de ID não permitida", "idAlterado", "O campo 'id' não pode ser alterado."));
     }
     
@@ -138,8 +151,12 @@ async function patchAgente(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Um Campo Obrigatório", "camposObrigatorios", "Pelo menos um campo deve ser fornecido."));
     }
 
+    if((nome && nome.trim() === "") || nome === "" || (dataDeIncorporacao && dataDeIncorporacao.trim() === "") || dataDeIncorporacao === "" || (cargo && cargo.trim() === "") || cargo === "") {
+        return res.status(400).json(errorHandler.handleError(400, "Campo Vazio", "campoVazio", "Não pode existir campos vazios."));
+    }
+
     if (dataDeIncorporacao && !isValidDate(dataDeIncorporacao)) {
-        return res.status(400).json(errorHandler.handleError(400, "Data Inválida", "dataInvalida", "Data de Incorporação inválida ou no futuro."));
+        return res.status(400).json(errorHandler.handleError(400, "Data Inválida", "dataInvalida", "Data de Incorporação inválida ou no futuro ou com mais de 120 anos."));
     }
 
     const agenteAtualizado = { nome, dataDeIncorporacao, cargo };
@@ -165,9 +182,16 @@ async function deleteAgente(req, res) {
 
 async function getCasosDoAgente(req, res) {
     const { id } = req.params;
-    const dados = await agentesRepository.encontrarAgenteById(id);
+    
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+    }
 
-    if (!dados) {
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }
+
+    if (!await agentesRepository.encontrarAgenteById(id)) {
         return res.status(404).json(errorHandler.handleError(404, "Agente não encontrado", "agenteNaoEncontrado", "Agente não foi encontrado com esse id."));
     }
 

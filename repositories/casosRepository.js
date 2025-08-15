@@ -151,8 +151,8 @@ async function encontrarCasoPorString(search) {
     try {
         // where('campo', 'operador', 'valor a ser comparado')
         const casos = await db("casos")
-                                                            .whereILike("titulo", `%${search}%`)
-                                                            .orWhereILike("descricao", `%${search}%`)
+                                                            .whereLike("titulo", `%${search}%`)
+                                                            .orWhereLike("descricao", `%${search}%`).debug()
 
         return casos;
     } catch (error) {

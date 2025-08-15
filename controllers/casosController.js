@@ -82,7 +82,7 @@ async function getCaso(req, res) {
 async function postCaso(req, res) {
     const { titulo, descricao, status, agente_id } = req.body;
 
-    if (!titulo || !descricao || !status || !agente_id) {
+    if(titulo.trim() === "" || descricao.trim() === "" || status.trim() === "" || String(agente_id).trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
     }
 
@@ -112,7 +112,7 @@ async function putCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Alteração de ID não permitida", "idAlterado", "O campo 'id' não pode ser alterado."));
     }
 
-    if (!titulo || !descricao || !status || !agente_id) {
+    if(titulo.trim() === "" || descricao.trim() === "" || status.trim() === "" || String(agente_id).trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
     }
 
@@ -146,6 +146,18 @@ async function patchCaso(req, res) {
         return res.status(400).json(errorHandler.handleError(400, "Um Campo Obrigatório", "camposObrigatorios", "Pelo menos um campo deve ser fornecido."));
     }
 
+    if (!agente_id || String(agente_id).trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido no formato de número."));
+    }
+
+    if (Number.isNaN(Number(agente_id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
+
+    if((titulo && titulo.trim() === "") || titulo === "" || (descricao && descricao.trim() === "") || descricao === "" || (status && status.trim() === "") || status === "") {
+        return res.status(400).json(errorHandler.handleError(400, "Campo Vazio", "campoVazio", "Não pode existir campos vazios."));
+    }
+
     if (status && status !== "aberto" && status !== "solucionado") {
         return res.status(400).json(errorHandler.handleError(400, "Tipo de status inválido", "tipoStatusInvalido", "Tipo de status inválido. Selecionar 'aberto' ou 'solucionado'."));
     }
@@ -176,7 +188,15 @@ async function deleteCaso(req, res) {
 }
 
 async function getAgenteDoCaso(req, res) {
-    const { caso_id } = req.params;
+    const { caso_id } = req.params;    
+
+    if (!caso_id || caso_id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(caso_id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }
 
     if (!await casosRepository.findById(caso_id)) {
         return res.status(404).json(errorHandler.handleError(404, "ID do caso informado não encontrado", "casoNaoEncontrado", "ID do caso informado não encontrado."));
