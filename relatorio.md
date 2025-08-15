@@ -1,242 +1,241 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 4 créditos restantes para usar o sistema de feedback AI.
+Você tem 3 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para gabrielmaiaaa:
 
-Nota final: **100.0/100**
+Nota final: **87.9/100**
 
-# Feedback para o Gabriel Maia 🚓🚀
+# Feedback para o Gabriel Maia 🚨👮‍♂️
 
-Olá, Gabriel! Antes de tudo, parabéns pelo empenho e pelo excelente trabalho na migração da sua API para o PostgreSQL com Knex.js! 🎉 Você alcançou a nota máxima na parte obrigatória (100/100) e também mandou muito bem nos bônus de filtragem simples por agente e status. Isso mostra que você está indo além do esperado — continue assim! 👏👏
-
----
-
-## O que eu adorei no seu projeto
-
-- Você estruturou muito bem a API usando a arquitetura modular com rotas, controllers e repositories. Isso facilita bastante a manutenção e a escalabilidade do código.
-- As migrations e seeds estão organizadas e corretas, criando as tabelas e populando os dados iniciais.
-- O uso do Knex está consistente, com tratamento de erros nas queries e formatação adequada da data nos agentes.
-- As validações de dados e os retornos HTTP estão muito bem implementados, com mensagens customizadas e status codes corretos.
-- Os endpoints essenciais para agentes e casos estão funcionando e entregando os dados corretamente.
-- Você implementou com sucesso os filtros simples por status e agente, que são funcionalidades extras muito úteis! 🌟
+Olá, Gabriel! Antes de qualquer coisa, parabéns pelo esforço e pela entrega dessa etapa tão importante do seu projeto! 🎉 Você conseguiu implementar várias funcionalidades essenciais da API REST com PostgreSQL e Knex.js, e isso já é um baita avanço. 👏
 
 ---
 
-## Pontos que precisam de atenção para destravar os bônus restantes
+## 🎯 Pontos Fortes que Merecem Destaque
 
-### 1. Endpoints de busca/filtragem de casos por palavra-chave (`/casos/search`)
+- Sua estrutura modular está muito bem organizada: você separou controllers, repositories e rotas de maneira clara e coerente. Isso facilita a manutenção e a escalabilidade do projeto — ótimo trabalho! 👏
 
-Você já criou o endpoint `/casos/search` no arquivo `routes/casosRoutes.js` e o método `getCasosPorString` no controller. Isso é ótimo! Porém, percebi que o teste bônus relacionado a isso não passou, o que indica que talvez a implementação do repositório para essa busca ainda precise de ajustes finos.
+- O uso do Knex para manipular o banco de dados está consistente, com consultas bem feitas nos repositories, e você cuidou de formatar as datas corretamente (como em `formatarData` no agentesRepository). 
 
-No seu `casosRepository.js`, você tem o método `encontrarCasoPorString` assim:
+- Os endpoints de `/agentes` estão muito bem implementados, com validações robustas, tratamento de erros personalizados e retornos de status HTTP apropriados. Isso mostra seu cuidado com a experiência da API para o consumidor. 👌
+
+- Você também implementou corretamente filtros simples, como a filtragem de casos por status e agente, o que já é um bônus bacana!
+
+---
+
+## 🔍 Análise Profunda dos Pontos que Precisam de Atenção
+
+### 1. Falha na Atualização Parcial (PATCH) de Casos e Validação do Payload
+
+Eu percebi que os endpoints relacionados a `/casos` com método PATCH estão apresentando dificuldades, especialmente na atualização parcial dos dados, e também no tratamento de payloads inválidos (retornando 400 quando o formato está incorreto). Isso indica que a validação e o tratamento do corpo da requisição para casos precisam de uma atenção especial.
+
+Ao analisar seu `casosController.js`, notei um trecho que pode estar causando problemas:
 
 ```js
-async function encontrarCasoPorString(search) {
-    try {
-        const casos = await db("casos")
-            .whereILike("titulo", `%${search}%`)
-            .orWhereILike("descricao", `%${search}%`)
-        return casos;
-    } catch (error) {
-        console.log(error);
-        return false;
+async function patchCaso(req, res) {
+    const { id } = req.params;
+    const { id: idBody, titulo, descricao, status, agente_id } = req.body;
+
+    if(idBody && idBody !== id) {
+        return res.status(400).json(errorHandler.handleError(400, "Alteração de ID não permitida", "idAlterado", "O campo 'id' não pode ser alterado."));
+    }
+
+    if (!titulo && !descricao && !status && !agente_id) {
+        return res.status(400).json(errorHandler.handleError(400, "Um Campo Obrigatório", "camposObrigatorios", "Pelo menos um campo deve ser fornecido."));
+    }
+
+    if (!agente_id || String(agente_id).trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido no formato de número."));
+    }
+
+    if (Number.isNaN(Number(agente_id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
+
+    // ... restantes das validações e atualização
+}
+```
+
+**Aqui está o problema fundamental:** você exige que o `agente_id` seja sempre fornecido no PATCH, o que não é coerente com a ideia de atualização parcial. Nem sempre o cliente quer alterar o agente responsável pelo caso, então esse campo deveria ser opcional.
+
+Além disso, se o `agente_id` não for enviado, seu código já retorna erro 400, o que inviabiliza atualizações parciais que não envolvam esse campo.
+
+**Como corrigir?**
+
+Você pode ajustar essa validação para que o `agente_id` seja validado somente se estiver presente no corpo da requisição. Algo assim:
+
+```js
+if (agente_id !== undefined) {
+    if (String(agente_id).trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido no formato de número."));
+    }
+
+    if (Number.isNaN(Number(agente_id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
+
+    if (!await agentesRepository.encontrarAgenteById(agente_id)) {
+        return res.status(404).json(errorHandler.handleError(404, "Agente não encontrado", "agenteNaoEncontrado", "Agente não encontrado. Verifique se o agente está registrado no sistema."));
     }
 }
 ```
 
-Esse código está correto em essência, mas vale a pena garantir que:
-
-- O parâmetro `search` está sempre uma string válida e não vazia (você já faz essa validação no controller, o que é ótimo).
-- O método `whereILike` e `orWhereILike` estejam disponíveis na versão do Knex e do PostgreSQL que você usa (você está usando PostgreSQL 17, que suporta LIKE case-insensitive, e Knex 3.1.0, que suporta `whereILike`).
-
-**Dica:** Para garantir que o filtro funcione corretamente, você pode adicionar um `.debug()` temporário para inspecionar a query gerada, ou testar direto no banco com um cliente SQL.
+Assim, você só valida o agente se ele for enviado, e permite atualizações parciais sem esse campo.
 
 ---
 
-### 2. Endpoints para buscar o agente responsável por um caso (`/casos/:caso_id/agente`) e casos de um agente (`/agentes/:id/casos`)
+### 2. Validação do Payload no PUT de Casos
 
-Você implementou esses endpoints e métodos nos controllers e repositories, mas os testes bônus falharam. Isso sugere que pode haver algum detalhe faltando no retorno ou na forma como a consulta está feita.
-
-No `casosRepository.js`, o método `encontrarAgenteDoCaso` está assim:
+Outro ponto que chamou atenção foi a validação do payload no método PUT para casos. O seu código atual verifica se os campos estão vazios com:
 
 ```js
-async function encontrarAgenteDoCaso(caso_id) {
-    try {
-        const caso = await db("casos").where({id:caso_id})
+if(titulo.trim() === "" || descricao.trim() === "" || status.trim() === "" || String(agente_id).trim() === "") {
+    return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
+}
+```
 
-        if (!caso || caso.length === 0){
-            return false;
-        }
+Porém, se algum desses campos vier `undefined` ou `null`, essa validação pode lançar erro, pois `undefined.trim()` não é válido.
 
-        const agente = await db("agentes").where({id:caso[0].agente_id})
+**Sugestão:** sempre verifique se o campo está definido antes de chamar `.trim()`. Por exemplo:
 
-        if (!agente || agente.length === 0){
-            return false;
-        }
+```js
+if (
+    !titulo || titulo.trim() === "" ||
+    !descricao || descricao.trim() === "" ||
+    !status || status.trim() === "" ||
+    agente_id === undefined || String(agente_id).trim() === ""
+) {
+    return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
+}
+```
 
-        return agente[0]
-        
-    } catch (error) {
-        console.log(error);
-        return false;
+Esse ajuste evita erros inesperados quando o payload está mal formatado.
+
+---
+
+### 3. Filtros e Busca de Casos e Agentes
+
+Você implementou filtros interessantes, mas percebi que alguns endpoints de busca e filtragem bônus, como:
+
+- Buscar agente responsável por um caso (`getAgenteDoCaso`)
+- Buscar casos do agente (`getCasosDoAgente`)
+- Busca de casos por palavras-chave (`getCasosPorString`)
+- Ordenação de agentes por data de incorporação
+
+não estão funcionando perfeitamente.
+
+Por exemplo, no seu `casosController.js`, o método `getCasosPorString` está assim:
+
+```js
+async function getCasosPorString(req, res) {
+    const { q } = req.query;
+
+    if(!q) {
+        return res.status(400).json(errorHandler.handleError(400, "Parâmetro não encontrado", "parametroNaoEncontrado", "Verifique se está utilizando o parametro 'q' e se colocou alguma palavra para buscar."));
     }
-}
-```
 
-Esse método está correto, mas veja se ao retornar o agente você está formatando a data da mesma forma que faz no `agentesRepository` (você formata a `dataDeIncorporacao` para string ISO). Isso ajuda a manter a consistência dos dados na API.
+    const dados = await casosRepository.encontrarCasoPorString(q);
 
-Além disso, no controller `getAgenteDoCaso`, você faz a checagem do caso antes, o que é ótimo.
-
-No `agentesRepository.js`, o método `listarCasosDeAgentes` está assim:
-
-```js
-async function listarCasosDeAgentes(id) {
-    try {        
-        const casos = await db("casos").select("*").where({agente_id:id});
-
-        if (!casos || casos.length === 0) {
-            return false;
-        }
-
-        return casos;
-
-    } catch (error) {
-        console.log(error);
-        return false;
+    if (!dados || dados.length === 0) {
+        return res.status(404).json(errorHandler.handleError(404, "Caso não encontrado", "casoNaoEncontrado", "Nenhum caso encontrado com a palavra fornecida."));
     }
+
+    res.status(200).json(dados);
 }
 ```
 
-Novamente, o método está correto, mas pode ser interessante garantir que, ao retornar múltiplos casos, você sempre retorna um array (mesmo vazio) e que no controller você trata o caso do array vazio para retornar 404, conforme esperado.
+E no repository, você usa:
+
+```js
+const casos = await db("casos")
+    .whereLike("titulo", `%${search}%`)
+    .orWhereLike("descricao", `%${search}%`).debug()
+```
+
+Aqui, o `.debug()` é uma ferramenta de desenvolvimento que imprime a query no console, mas não deve ficar no código final, pois pode poluir os logs e afetar performance.
+
+Além disso, se a query não estiver funcionando, pode ser que o operador `whereLike` não seja reconhecido na versão do Knex que você está usando (versão ^3.1.0). O método correto para fazer busca com LIKE no Knex é:
+
+```js
+.where('titulo', 'ilike', `%${search}%`)
+.orWhere('descricao', 'ilike', `%${search}%`)
+```
+
+O operador `ilike` é case-insensitive no PostgreSQL, ideal para buscas de texto.
 
 ---
 
-### 3. Filtros complexos para agentes por data de incorporação com ordenação (sort)
+### 4. Estrutura e Organização do Projeto
 
-Percebi que você tem no controller `agentesController.js` um tratamento para o query param `sort` que aceita `"dataDeIncorporacao"` e `"-dataDeIncorporacao"` e chama o método `listarDataDeIncorporacao` do repository:
-
-```js
-async function listarDataDeIncorporacao(sort) {
-    try {
-        if (sort === "dataDeIncorporacao") {
-            const agentes = await db("agentes").orderBy("dataDeIncorporacao", "asc");
-            return agentes.map(agente => formatarData(agente));
-        } else if (sort === "-dataDeIncorporacao") {
-            const agentes = await db("agentes").orderBy("dataDeIncorporacao", "desc");
-            return agentes.map(agente => formatarData(agente));
-        }
-
-        return false;
-    } catch (error) {
-        console.log(error);
-        return false;
-    }
-}
-```
-
-O problema pode estar na forma de verificar o parâmetro `sort` no controller:
-
-```js
-if (sort || sort === '') {
-    // ...
-}
-```
-
-Aqui, se o cliente enviar `sort=""` (string vazia), o código entra no bloco, mas `"".toLowerCase()` não é um valor válido para ordenar, e seu método retorna `false`, que gera 404.
-
-**Sugestão:** Troque a condição para:
-
-```js
-if (sort) {
-    // Apenas entra se sort tem valor definido e não vazio
-}
-```
-
-Ou faça uma validação mais explícita para aceitar somente os valores esperados.
-
-Além disso, no controller, quando você chama o método do repository, se ele retornar `false`, você retorna 404, mas talvez o correto seja retornar 400 (bad request), pois o parâmetro `sort` está inválido.
-
----
-
-### 4. Mensagens de erro customizadas para argumentos inválidos
-
-Você está fazendo um ótimo trabalho com mensagens de erro customizadas, mas os testes bônus indicam que ainda há espaço para melhorar a cobertura desses erros para os argumentos inválidos.
-
-Por exemplo, no controller de agentes, no método `getAllAgentes`, você tem:
-
-```js
-if (cargo !== "inspetor" && cargo !== "delegado") {
-    return res.status(400).json(errorHandler.handleError(400, "Cargo Inválido", "cargoInvalido", "Tipo de cargo inválido. Selecionar 'inspetor' ou 'delegado'."));
-}
-```
-
-Isso está perfeito! Só tenha certeza de que em todos os endpoints, para todos os parâmetros que podem ser inválidos (como `status` em casos, `id` inexistente, etc.), você está retornando mensagens claras e consistentes.
-
----
-
-## Sobre a estrutura do projeto
-
-A estrutura do seu projeto está exatamente conforme o esperado! 👏👏👏
+Sua estrutura de diretórios está muito próxima do esperado, parabéns! 👏 Só reforçando para manter exatamente assim para garantir que tudo funcione perfeitamente:
 
 ```
-.
+📦 SEU-REPOSITÓRIO
+│
+├── package.json
+├── server.js
+├── knexfile.js
+├── INSTRUCTIONS.md
+│
 ├── db/
 │   ├── migrations/
 │   ├── seeds/
 │   └── db.js
+│
 ├── routes/
 │   ├── agentesRoutes.js
 │   └── casosRoutes.js
+│
 ├── controllers/
 │   ├── agentesController.js
 │   └── casosController.js
+│
 ├── repositories/
 │   ├── agentesRepository.js
 │   └── casosRepository.js
-├── utils/
-│   └── errorHandler.js
-├── knexfile.js
-├── package.json
-├── server.js
-├── INSTRUCTIONS.md
+│
+└── utils/
+    └── errorHandler.js
 ```
 
-Essa organização é fundamental para manter o código limpo e escalável! Continue mantendo essa disciplina. 💪
+---
+
+## 📚 Recursos para Você Aprofundar
+
+Para fortalecer seu entendimento e corrigir os pontos acima, recomendo os seguintes conteúdos:
+
+- **Validação de Dados e Tratamento de Erros na API:**  
+  https://youtu.be/yNDCRAz7CM8?si=Lh5u3j27j_a4w3A_  
+  (Fundamental para entender como validar payloads e retornar erros 400 e 404 adequadamente.)
+
+- **Knex Query Builder - Busca com LIKE e Atualizações:**  
+  https://knexjs.org/guide/query-builder.html  
+  (Ajuda a entender a sintaxe correta para buscas com `where`, `orWhere` e operadores como `ilike`.)
+
+- **Configuração de Banco de Dados com Docker e Knex:**  
+  http://googleusercontent.com/youtube.com/docker-postgresql-node  
+  (Para garantir que seu ambiente está configurado corretamente e seu banco está respondendo às queries.)
+
+- **Arquitetura MVC e Organização de Projetos Node.js:**  
+  https://youtu.be/bGN_xNc4A1k?si=Nj38J_8RpgsdQ-QH  
+  (Para se aprofundar na estrutura modular que você já está usando e aprimorar ainda mais.)
 
 ---
 
-## Recomendações de estudo para te ajudar a avançar ainda mais 🚀
+## 📝 Resumo Rápido dos Pontos para Focar
 
-- Para garantir que suas queries com Knex estejam corretas e para dominar filtros e buscas avançadas, recomendo fortemente a leitura da documentação oficial do Knex Query Builder:  
-  https://knexjs.org/guide/query-builder.html
-
-- Para aprimorar suas migrations e seeds, e garantir que o banco esteja sempre alinhado com o código, dê uma olhada neste guia:  
-  https://knexjs.org/guide/migrations.html
-
-- Para fortalecer sua validação de dados e tratamento de erros, veja este vídeo que explica boas práticas em APIs Node.js/Express:  
-  https://youtu.be/yNDCRAz7CM8?si=Lh5u3j27j_a4w3A_
-
-- Se quiser entender melhor a arquitetura MVC e a organização do seu projeto, este vídeo é excelente:  
-  https://youtu.be/bGN_xNc4A1k?si=Nj38J_8RpgsdQ-QH
+- Ajustar validação no PATCH de casos para que `agente_id` seja opcional, só validando se enviado.  
+- Melhorar validação do payload no PUT para evitar erros ao acessar `.trim()` de valores `undefined`.  
+- Corrigir a query de busca por palavra-chave no `casosRepository` para usar `ilike` em vez de `whereLike`.  
+- Remover `.debug()` do código de produção para evitar poluição de logs.  
+- Garantir que a estrutura de diretórios está exatamente conforme o padrão esperado.  
 
 ---
 
-## Resumo rápido dos pontos para focar
+Gabriel, seu projeto tem uma base muito sólida e você está no caminho certo para construir uma API robusta e bem estruturada! 🚀 Com esses ajustes finos, sua aplicação vai ficar ainda mais profissional e confiável. Continue assim, aprendendo e evoluindo. Qualquer dúvida, pode contar comigo! 🤝
 
-- 🚩 Ajustar o endpoint de busca por palavra-chave para garantir que a query funcione e retorne resultados corretamente, incluindo validação do parâmetro `q`.
-- 🚩 Garantir que os métodos que retornam agentes e casos formatem os dados (ex: datas) de forma consistente.
-- 🚩 Revisar o tratamento do parâmetro `sort` para agentes, evitando aceitar valores vazios e retornando código 400 para valores inválidos.
-- 🚩 Verificar e ampliar a cobertura das mensagens de erro customizadas para todos os parâmetros e endpoints.
-- 🚩 Testar os endpoints bônus de busca de agente por caso e de casos por agente para garantir que retornam os dados esperados e no formato correto.
-
----
-
-Gabriel, seu código já está muito sólido e organizado, e você mostrou domínio dos conceitos fundamentais dessa etapa. Com os ajustes que sugeri, você vai destravar todos os bônus e deixar sua API ainda mais robusta e completa! 🚀💙
-
-Continue firme e conte comigo para o que precisar! Qualquer dúvida, é só chamar! 😉
-
-Abraços e bons códigos! 👨‍💻✨
+Um grande abraço e sucesso na jornada! 👊✨
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
