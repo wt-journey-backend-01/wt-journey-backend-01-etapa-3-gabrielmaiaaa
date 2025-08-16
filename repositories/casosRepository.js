@@ -4,7 +4,7 @@ const agentesRepository = require("../repositories/agentesRepository");
 
 async function findAll() {
     try {
-        const casos = await db("casos").select("*");
+        const casos = await db("casos").select("*").orderBy("id", "asc");
 
         return casos;
     } catch (error) {
@@ -77,7 +77,7 @@ async function apagarCaso(id) {
 
 async function listarCasosPorAgente(agente_id) {
     try {
-        const casos = await db("casos").where({agente_id:agente_id})
+        const casos = await db("casos").where({agente_id:agente_id}).orderBy("id", "asc");
 
         if (!casos || casos.length === 0){
             return false;
@@ -93,7 +93,7 @@ async function listarCasosPorAgente(agente_id) {
 
 async function listarCasosPorStatus(status) {
     try {
-        const casos = await db("casos").where({status:status})
+        const casos = await db("casos").where({status:status}).orderBy("id", "asc");
 
         if (!casos || casos.length === 0){
             return false;
@@ -110,7 +110,7 @@ async function listarCasosPorStatus(status) {
 
 async function listarCasosPorAgenteEStatus(agente_id, status) {
     try {
-        const casos = await db("casos").where({agente_id:agente_id, status:status});
+        const casos = await db("casos").where({agente_id:agente_id, status:status}).orderBy("id", "asc");
 
         if (!casos || casos.length === 0){
             return false;
@@ -153,6 +153,7 @@ async function encontrarCasoPorString(search) {
         const casos = await db("casos")
                                                             .whereILike("titulo", `%${search}%`)
                                                             .orWhereILike("descricao", `%${search}%`)
+                                                            .orderBy("id", "asc")
 
         return casos;
     } catch (error) {

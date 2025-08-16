@@ -7,7 +7,7 @@ function formatarData(agente) {
 
 async function encontrarAgentes(){
     try {
-        const agentes = await db("agentes").select("*");
+        const agentes = await db("agentes").select("*").orderBy("id", "asc");
 
         return agentes.map(agente => formatarData(agente));
     } catch (error) {
@@ -19,7 +19,7 @@ async function encontrarAgentes(){
 
 async function encontrarAgenteById(id){
     try {
-        const agente = await db("agentes").where({id: id})
+        const agente = await db("agentes").where({id: id});
 
         if (!agente || agente.length === 0){
             return false;
@@ -80,7 +80,7 @@ async function apagarAgente(id) {
 
 async function listarAgentesPorCargo(cargo) {
     try {
-        const agentes = await db("agentes").select("*").where({cargo:cargo});
+        const agentes = await db("agentes").select("*").where({cargo:cargo}).orderBy("id", "asc");
 
         if (!agentes || agentes.length === 0){
             return false;
@@ -113,7 +113,7 @@ async function listarDataDeIncorporacao(sort) {
 
 async function listarCasosDeAgentes(id) {
     try {        
-        const casos = await db("casos").select("*").where({agente_id:id});
+        const casos = await db("casos").select("*").where({agente_id:id}).orderBy("id", "asc");
 
         if (!casos || casos.length === 0) {
             return false;
