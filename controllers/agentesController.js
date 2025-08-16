@@ -219,12 +219,6 @@ async function deleteAgente(req, res) {
     if (Number.isNaN(Number(id)) || !Number.isInteger(Number(id))) {
         return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
     }
-    
-    const casos = await casosRepository.listarCasosPorAgente(id);
-
-    if (casos && casos.length > 0) {
-        return res.status(400).json(errorHandler.handleError(400, "Agente com Casos", "agenteComCasos", "Agente não pode ser excluído enquanto tiver casos associados."));
-    }
 
     const status = await agentesRepository.apagarAgente(id);
 
