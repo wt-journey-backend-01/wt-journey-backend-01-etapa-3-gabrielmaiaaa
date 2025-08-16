@@ -84,6 +84,15 @@ async function getAllAgentes(req, res) {
 
 async function getAgente(req, res) {
     const { id } = req.params;
+    
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
+    
     const dados = await agentesRepository.encontrarAgenteById(id);
 
     if (!dados) {
@@ -95,6 +104,10 @@ async function getAgente(req, res) {
 
 async function postAgente(req, res) {
     const { nome, dataDeIncorporacao, cargo } = req.body;
+
+    if(typeof nome !== 'string' || typeof dataDeIncorporacao !== 'string' || typeof cargo !== 'string') {
+        return res.status(400).json(errorHandler.handleError(400, "Campos Inválidos", "camposInvalidos", "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' devem ser preenchidos com string."));
+    }
 
     if(!nome || nome.trim() === "" || !dataDeIncorporacao || dataDeIncorporacao.trim() === "" || !cargo || cargo.trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Campos Obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
@@ -116,10 +129,23 @@ async function postAgente(req, res) {
 
 async function putAgente(req, res) {
     const { id } = req.params;
+    
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
+
     const { id: idBody, nome, dataDeIncorporacao, cargo } = req.body;
 
     if((idBody && idBody !== id) || idBody === "") {
         return res.status(400).json(errorHandler.handleError(400, "Alteração de ID não permitida", "idAlterado", "O campo 'id' não pode ser alterado."));
+    }
+
+    if(typeof nome !== 'string' || typeof dataDeIncorporacao !== 'string' || typeof cargo !== 'string') {
+        return res.status(400).json(errorHandler.handleError(400, "Campos Inválidos", "camposInvalidos", "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' devem ser preenchidos com string."));
     }
 
     if(!nome || nome.trim() === "" || !dataDeIncorporacao || dataDeIncorporacao.trim() === "" || !cargo || cargo.trim() === "") {
@@ -142,6 +168,15 @@ async function putAgente(req, res) {
 
 async function patchAgente(req, res) {
     const { id } = req.params;
+    
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
+
     const { id: idBody, nome, dataDeIncorporacao, cargo } = req.body;
 
     if((idBody && idBody !== id) || idBody === "") {
@@ -150,6 +185,10 @@ async function patchAgente(req, res) {
     
     if(!nome && !dataDeIncorporacao && !cargo) {
         return res.status(400).json(errorHandler.handleError(400, "Um Campo Obrigatório", "camposObrigatorios", "Pelo menos um campo deve ser fornecido."));
+    }
+
+    if((nome && typeof nome !== 'string') || (dataDeIncorporacao && typeof dataDeIncorporacao !== 'string') || (cargo && typeof cargo !== 'string')) {
+        return res.status(400).json(errorHandler.handleError(400, "Campos Inválidos", "camposInvalidos", "Os campos 'nome', 'dataDeIncorporacao' ou 'cargo' devem ser preenchidos com string."));
     }
 
     if((nome && nome.trim() === "") || nome === "" || (dataDeIncorporacao && dataDeIncorporacao.trim() === "") || dataDeIncorporacao === "" || (cargo && cargo.trim() === "") || cargo === "") {
@@ -172,6 +211,14 @@ async function patchAgente(req, res) {
 
 async function deleteAgente(req, res) {
     const { id } = req.params;
+    
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
+    }
 
     if(await casosRepository.listarCasosPorAgente(id)) {
         return res.status(400).json(errorHandler.handleError(400, "Agente com Casos", "agenteComCasos", "Agente não pode ser excluído enquanto tiver casos associados."));

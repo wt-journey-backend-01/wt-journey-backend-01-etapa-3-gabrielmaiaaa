@@ -47,6 +47,14 @@ async function listarPorAgenteEStatus(res, agente_id, status) {
 async function getAllCasos(req, res) {
     const { agente_id, status } = req.query;
 
+    if((agente_id && agente_id.trim() === "") && (status && status.trim() === "")) {
+        return res.status(400).json(errorHandler.handleError(400, "Campo Vazio", "campoVazio", "Não pode existir campos vazios."));
+    }
+
+    if(agente_id && isNaN(Number(agente_id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }   
+
     if (agente_id && status) {
         return listarPorAgenteEStatus(res, agente_id, status);
     }
@@ -70,6 +78,15 @@ async function getAllCasos(req, res) {
 
 async function getCaso(req, res) {
     const { id } = req.params;
+
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }
+
     const caso = await casosRepository.findById(id);
 
     if (!caso) {
@@ -82,8 +99,12 @@ async function getCaso(req, res) {
 async function postCaso(req, res) {
     const { titulo, descricao, status, agente_id } = req.body;
 
-    if(titulo.trim() === "" || descricao.trim() === "" || status.trim() === "" || String(agente_id).trim() === "") {
+    if(!titulo || titulo.trim() === "" || !descricao || descricao.trim() === "" || !status || status.trim() === "" || !agente_id || String(agente_id).trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
+    }
+    
+    if(typeof titulo !== 'string' || typeof descricao !== 'string' || typeof status !== 'string' || typeof agente_id !== 'number') {
+        return res.status(400).json(errorHandler.handleError(400, "Campos Inválidos", "camposInvalidos", "Os campos 'titulo', 'descricao', 'status' e 'agente_id' devem ser preenchidos corretamente."));
     }
 
     if (status !== "aberto" && status !== "solucionado") {
@@ -106,6 +127,15 @@ async function postCaso(req, res) {
 
 async function putCaso(req, res) {
     const { id } = req.params;
+
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }
+
     const { id: idBody, titulo, descricao, status, agente_id } = req.body;
 
     if(idBody && idBody !== id) {
@@ -114,6 +144,10 @@ async function putCaso(req, res) {
 
     if(!titulo ||titulo.trim() === "" || !descricao || descricao.trim() === "" || !status || status.trim() === "" || agente_id === undefined || String(agente_id).trim() === "") {
         return res.status(400).json(errorHandler.handleError(400, "Todos os campos são obrigatórios", "camposObrigatorios", "Todos os campos são obrigatórios."));
+    }
+    
+    if(typeof titulo !== 'string' || typeof descricao !== 'string' || typeof status !== 'string' || typeof agente_id !== 'number') {
+        return res.status(400).json(errorHandler.handleError(400, "Campos Inválidos", "camposInvalidos", "Os campos 'titulo', 'descricao', 'status' e 'agente_id' devem ser preenchidos corretamente."));
     }
 
     if (status !== "aberto" && status !== "solucionado") {
@@ -136,6 +170,15 @@ async function putCaso(req, res) {
 
 async function patchCaso(req, res) {
     const { id } = req.params;
+
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }
+
     const { id: idBody, titulo, descricao, status, agente_id } = req.body;
 
     if(idBody && idBody !== id) {
@@ -145,14 +188,14 @@ async function patchCaso(req, res) {
     if (!titulo && !descricao && !status && !agente_id) {
         return res.status(400).json(errorHandler.handleError(400, "Um Campo Obrigatório", "camposObrigatorios", "Pelo menos um campo deve ser fornecido."));
     }
+    
+    if((titulo && typeof titulo !== 'string') || (descricao && typeof descricao !== 'string') || (status && typeof status !== 'string' || (agente_id && typeof agente_id !== 'number'))) {
+        return res.status(400).json(errorHandler.handleError(400, "Campos Inválidos", "camposInvalidos", "Os campos 'titulo', 'descricao', 'status' ou 'agente_id' devem ser preenchidos corretamente."));
+    }
 
     if (agente_id !== undefined) {
-        if (String(agente_id).trim() === "") {
+        if (agente_id === "") {
             return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido no formato de número."));
-        }
-
-        if (Number.isNaN(Number(agente_id))) {
-            return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número."));
         }
 
         if (!await agentesRepository.encontrarAgenteById(agente_id)) {
@@ -180,6 +223,15 @@ async function patchCaso(req, res) {
 
 async function deleteCaso(req, res) {
     const { id } = req.params;
+
+    if (!id || id.trim() === "") {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+    }
+
+    if (Number.isNaN(Number(id))) {
+        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número."));
+    }
+
     const status = await casosRepository.apagarCaso(id);
 
     if (!status) {
