@@ -47,7 +47,7 @@ async function getAllAgentes(req, res) {
 
     if (cargo) {
         if (cargo !== "inspetor" && cargo !== "delegado") {
-            return res.status(400).json(errorHandler.handleError(400, "Cargo Inválido", "cargoInvalido", "Tipo de cargo inválido. Selecionar 'inspetor' ou 'delegado'."));
+            return res.status(400).json(errorHandler.handleError(400, "Cargo inválido", "cargoInvalido", "Tipo de cargo inválido. Selecionar 'inspetor' ou 'delegado'."));
         }
 
         const dados = await agentesRepository.listarAgentesPorCargo(cargo);
@@ -61,7 +61,7 @@ async function getAllAgentes(req, res) {
 
     if (sort) {
         if (sort !== "dataDeIncorporacao" && sort !== "-dataDeIncorporacao") {
-            return res.status(400).json(errorHandler.handleError(400, "Tipo de Sort Inválido", "tipoSortInvalido", "Tipo de sort inválido. Selecionar 'dataDeIncorporacao' ou '-dataDeIncorporacao'."));
+            return res.status(400).json(errorHandler.handleError(400, "Tipo de Sort inválido", "tipoSortInvalido", "Tipo de sort inválido. Selecionar 'dataDeIncorporacao' ou '-dataDeIncorporacao'."));
         }
 
         const dados = await agentesRepository.listarDataDeIncorporacao(sort)
@@ -86,11 +86,11 @@ async function getAgente(req, res) {
     const { id } = req.params;
     
     if (!id || id.trim() === "") {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
     }
 
     if (Number.isNaN(Number(id)) || !Number.isInteger(Number(id))) {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
     }
     
     const dados = await agentesRepository.encontrarAgenteById(id);
@@ -106,7 +106,7 @@ async function postAgente(req, res) {
     const { nome, dataDeIncorporacao, cargo } = req.body;
 
     if(typeof nome !== 'string' || typeof dataDeIncorporacao !== 'string' || typeof cargo !== 'string') {
-        return res.status(400).json(errorHandler.handleError(400, "Parâmetros Inválidos", "parametrosInvalidos", "Os parâmetros 'nome', 'dataDeIncorporacao' e 'cargo' devem ser preenchidos com string."));
+        return res.status(400).json(errorHandler.handleError(400, "Parâmetros inválidos", "parametrosInvalidos", "Os parâmetros 'nome', 'dataDeIncorporacao' e 'cargo' devem ser preenchidos com string."));
     }
 
     if(!nome || nome.trim() === "" || !dataDeIncorporacao || dataDeIncorporacao.trim() === "" || !cargo || cargo.trim() === "") {
@@ -131,11 +131,11 @@ async function putAgente(req, res) {
     const { id } = req.params;
     
     if (!id || id.trim() === "") {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
     }
 
     if (Number.isNaN(Number(id)) || !Number.isInteger(Number(id))) {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
     }
 
     const { id: idBody, nome, dataDeIncorporacao, cargo } = req.body;
@@ -145,7 +145,7 @@ async function putAgente(req, res) {
     }
 
     if(typeof nome !== 'string' || typeof dataDeIncorporacao !== 'string' || typeof cargo !== 'string') {
-        return res.status(400).json(errorHandler.handleError(400, "Parâmetros Inválidos", "parametrosInvalidos", "Os parâmetros 'nome', 'dataDeIncorporacao' e 'cargo' devem ser preenchidos com string."));
+        return res.status(400).json(errorHandler.handleError(400, "Parâmetros inválidos", "parametrosInvalidos", "Os parâmetros 'nome', 'dataDeIncorporacao' e 'cargo' devem ser preenchidos com string."));
     }
 
     if(!nome || nome.trim() === "" || !dataDeIncorporacao || dataDeIncorporacao.trim() === "" || !cargo || cargo.trim() === "") {
@@ -170,11 +170,11 @@ async function patchAgente(req, res) {
     const { id } = req.params;
     
     if (!id || id.trim() === "") {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
     }
 
     if (Number.isNaN(Number(id)) || !Number.isInteger(Number(id))) {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
     }
 
     const { id: idBody, nome, dataDeIncorporacao, cargo } = req.body;
@@ -188,7 +188,7 @@ async function patchAgente(req, res) {
     }
 
     if((nome && typeof nome !== 'string') || (dataDeIncorporacao && typeof dataDeIncorporacao !== 'string') || (cargo && typeof cargo !== 'string')) {
-        return res.status(400).json(errorHandler.handleError(400, "Parâmetros Inválidos", "parametrosInvalidos", "Os parâmetros 'nome', 'dataDeIncorporacao' ou 'cargo' devem ser preenchidos com string."));
+        return res.status(400).json(errorHandler.handleError(400, "Parâmetros inválidos", "parametrosInvalidos", "Os parâmetros 'nome', 'dataDeIncorporacao' ou 'cargo' devem ser preenchidos com string."));
     }
 
     if((nome && nome.trim() === "") || nome === "" || (dataDeIncorporacao && dataDeIncorporacao.trim() === "") || dataDeIncorporacao === "" || (cargo && cargo.trim() === "") || cargo === "") {
@@ -213,11 +213,11 @@ async function deleteAgente(req, res) {
     const { id } = req.params;
     
     if (!id || id.trim() === "") {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente não fornecido", "agenteInvalido", "ID do agente deve ser fornecido."));
     }
 
     if (Number.isNaN(Number(id)) || !Number.isInteger(Number(id))) {
-        return res.status(400).json(errorHandler.handleError(400, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do agente inválido", "agenteInvalido", "ID do agente deve ser um número inteiro."));
     }
 
     const status = await agentesRepository.apagarAgente(id);
@@ -233,11 +233,11 @@ async function getCasosDoAgente(req, res) {
     const { id } = req.params;
     
     if (!id || id.trim() === "") {
-        return res.status(400).json(errorHandler.handleError(400, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do caso não fornecido", "casoInvalido", "ID do caso deve ser fornecido."));
     }
 
     if (Number.isNaN(Number(id)) || !Number.isInteger(Number(id))) {
-        return res.status(400).json(errorHandler.handleError(400, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número inteiro."));
+        return res.status(404).json(errorHandler.handleError(404, "ID do caso inválido", "casoInvalido", "ID do caso deve ser um número inteiro."));
     }
 
     if (!await agentesRepository.encontrarAgenteById(id)) {
